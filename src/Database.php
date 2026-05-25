@@ -45,7 +45,34 @@ class Database
 
   public function query($sql)
   {
-    return $this->connect()->query((string) $sql);
+    $result = $this->connect()->query((string) $sql);
+
+    if ($result === false) {
+      throw new \Exception('SQL error: ' . $this->connect()->error);
+    }
+
+    return $result;
+  }
+
+  public function begin()
+  {
+    return $this->connect()->autocommit(false);
+  }
+
+  public function commit()
+  {
+    $result = $this->connect()->commit();
+    $this->connect()->autocommit(true);
+
+    return $result;
+  }
+
+  public function rollback()
+  {
+    $result = $this->connect()->rollback();
+    $this->connect()->autocommit(true);
+
+    return $result;
   }
 
   public function escape($value)
@@ -120,7 +147,7 @@ class Database
     return '`' . str_replace('`', '``', (string) $name) . '`';
   }
 
-  protected function value($value)
+  public function value($value)
   {
     if ($value === null) {
       return 'NULL';
